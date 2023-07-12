@@ -6,56 +6,78 @@ inquirer
   .prompt([
     {
       type: "input",
-      name: "color",
+      name: "shape",
+      message: "What shape would you like? (triangle, square, circle)",
+    },
+    {
+      type: "input",
+      name: "shapeColor",
       message: "What is the color of your shape?",
     },
     {
       type: "input",
-      name: "shape",
-      message: "What shape would you like?",
-    },
-    {
-      type: "input",
       name: "text",
-      message: "What is the text in your shape?",
+      message: "What is the text in your shape? (up to 3 characters)",
+      validate: function (value) {
+        if (value.length <= 3) {
+          return true;
+        } else {
+          return "Text must be 3 characters or less";
+        }
+      },
     },
     {
       type: "input",
-      name: "fileName",
-      message: "What is the name of your svg file?",
+      name: "textColor",
+      message: "What is the color of your text?",
     },
     {
       type: "confirm",
       name: "confirm",
-      message: "Would you like to create a new file?",
+      message: "Would you like to create the file?",
     },
   ])
   .then(function (data) {
     if (data.confirm === true) {
-      const svg = makeSvg(data.color, data.shape, data.text);
-      fs.writeFile(data.fileName + ".svg", svg, function (err) {
+      const svg = makeSvg(
+        data.shape,
+        data.shapeColor,
+        data.text,
+        data.textColor
+      );
+      fs.writeFile("logo.svg", svg, function (err) {
         if (err) throw err;
-        console.log("Your svg file has been created!");
+        console.log("Generated logo.svg");
         process.exit();
       });
     }
   });
 
-// function to make an svg file
-function makeSvg(color, shape, text) {
+// function to make an svg xml string
+function makeSvg(shape, shapeColor, text, textColor) {
   let svgString = ``;
-  if (shape === "rectangle" || shape === "square") {
-    shape = "rect";
-    svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
-    <${shape} width="100%" height="100%" fill="${color}" />
-    <text x="150" y="150" fill="white" font-size="20" text-anchor="middle">${text}</text>
-    </svg>`;
-  }
-  if (shape === "circle") {
-    svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
-    <${shape} cx="150" cy="100" r="80" fill="${color}" />
-    <text x="150" y="150" fill="white" font-size="20" text-anchor="middle">${text}</text>
-    </svg>`;
+  switch (shape) {
+    case "triangle":
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
+      <polygon points="50,150 150,50 250,150" fill="${shapeColor}" />
+      <text x="50%" y="50%" fill="${textColor}" font-size="20" text-anchor="middle">${text}</text>
+      </svg>`;
+      break;
+    case "square":
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
+      <rect width="100%" height="100%" fill="${shapeColor}" />
+      <text x="50%" y="50%" fill="${textColor}" font-size="20" text-anchor="middle">${text}</text>
+      </svg>`;
+      break;
+    case "circle":
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
+      <circle cx="50%" cy="50%" r="80" fill="${shapeColor}" />
+      <text x="50%" y="50%" fill="${textColor}" font-size="20" text-anchor="middle">${text}</text>
+      </svg>`;
+      break;
+    default:
+      console.log("Please enter a valid shape!");
+      process.exit();
   }
   return svgString;
 }
